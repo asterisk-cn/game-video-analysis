@@ -1,0 +1,386 @@
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+.app-header {
+  background-color: #2c3e50;
+  color: white;
+  padding: 1rem 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.app-main {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* File Uploader */
+.file-uploader {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.file-uploader h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.upload-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.upload-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: #f9f9f9;
+  border: 2px dashed #ddd;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.upload-item:hover {
+  border-color: #5a6c7d;
+  background-color: #f8f9fa;
+}
+
+.upload-label {
+  font-weight: 500;
+  color: #555;
+  transition: color 0.3s ease;
+}
+
+.upload-label.uploaded {
+  color: #28a745;
+}
+
+.upload-button {
+  padding: 0.5rem 1.5rem;
+  background-color: #5a6c7d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: #465561;
+}
+
+/* Session Info Panel */
+.session-info-panel {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.session-info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0.5rem;
+}
+
+.session-info-header:hover {
+  opacity: 0.8;
+}
+
+.session-info-header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.arrow-icon {
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 8px solid #666;
+  transform: rotate(-90deg);
+}
+
+.toggle-button.open .arrow-icon {
+  transform: rotate(0deg);
+}
+
+.session-info-panel h3 {
+  font-size: 1rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #5a6c7d;
+  color: #333;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.info-label {
+  font-size: 0.875rem;
+  color: #666;
+  margin-bottom: 0.25rem;
+}
+
+.info-value {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.session-id {
+  font-family: monospace;
+  font-size: 0.875rem;
+}
+
+.info-section {
+  margin-top: 1.5rem;
+}
+
+.main-content {
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.video-section {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 1rem;
+}
+
+/* Data Visualizer */
+.data-visualizer {
+}
+
+.visualizer-layout {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.variable-selector-panel {
+  min-width: 180px;
+  max-width: 200px;
+  flex-shrink: 0;
+}
+
+.selector-label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.variable-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.variable-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.variable-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.variable-list::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.variable-list::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+.variable-button {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #ccc;
+  background-color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.variable-button:hover {
+  background-color: #f8f9fa;
+}
+
+.variable-button.active {
+  background-color: #f0f0f0;
+  font-weight: 500;
+}
+
+.chart-area {
+  flex: 1;
+  min-width: 0;
+}
+
+.chart-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.position-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.position-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.875rem;
+}
+
+.position-toggle input[type="checkbox"] {
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+/* Messages */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #f5c6cb;
+}
+
+.loading-message {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  border: 1px solid #bee5eb;
+  text-align: center;
+  font-weight: 500;
+}
+
+.welcome-message {
+  background: white;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.welcome-message h2 {
+  color: #2c3e50;
+  margin-bottom: 1rem;
+}
+
+.welcome-message ol {
+  text-align: left;
+  max-width: 500px;
+  margin: 0 auto;
+  padding-left: 1.5rem;
+}
+
+.welcome-message li {
+  margin-bottom: 0.75rem;
+  color: #555;
+  line-height: 1.6;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .app-main {
+    padding: 1rem;
+  }
+
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-section {
+    grid-template-columns: 1fr;
+  }
+
+  .visualizer-layout {
+    flex-direction: column;
+  }
+
+  .variable-selector-panel {
+    max-width: 100%;
+  }
+
+  .variable-list {
+    flex-direction: row;
+    flex-wrap: wrap;
+    max-height: none;
+    overflow-y: visible;
+  }
+}
