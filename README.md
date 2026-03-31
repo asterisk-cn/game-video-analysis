@@ -55,28 +55,3 @@ pnpm dev
 ### 4. サンプルデータでのテスト
 
 `sample-data/sample-session.json` を使用して、動画なしでもデータの可視化をテストできます。
-
-## データ形式
-
-### JSON出力形式
-
-```json
-{
-  "sessionInfo": {
-    "sessionId": "uuid",
-    "gameTitle": "ゲーム名",
-    "startTime": "ISO8601形式",
-    "endTime": "ISO8601形式",
-    "playerAttributes": {}
-  },
-  "dataPoints": [
-    {
-      "timestamp": 0.0,
-      "score": 0,
-      "health": 100,
-      "position": {"x": 0, "y": 0, "z": 0},
-      "customParameters": {}
-    }
-  ]
-}
-```

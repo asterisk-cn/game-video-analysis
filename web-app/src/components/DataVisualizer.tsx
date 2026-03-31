@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import {
-  LineChart,
+  ComposedChart,
   Line,
   XAxis,
   YAxis,
@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
+  Scatter,
 } from 'recharts';
 import type { DataPoint } from '../types/SessionData';
 import { formatTime } from '../utils/formatters';
@@ -40,22 +41,18 @@ const COLORS = [
   '#2f4b7c',
 ];
 
-// オブジェクトを再帰的に探索して数値プロパティを抽出
-const extractNumericProperties = (obj: any, prefix: string = ''): Record<string, number> => {
+// valueオブジェクト内の数値プロパティを抽出
+const extractNumericPropertiesFromValue = (obj: any): Record<string, number> => {
   const result: Record<string, number> = {};
 
-  for (const [key, value] of Object.entries(obj)) {
-    // timestampは除外
-    if (key === 'timestamp') continue;
+  // valueオブジェクトが存在する場合のみ処理
+  if (!obj.value || typeof obj.value !== 'object') {
+    return result;
+  }
 
-    const fullKey = prefix ? `${prefix}.${key}` : key;
-
+  for (const [key, value] of Object.entries(obj.value)) {
     if (typeof value === 'number') {
-      result[fullKey] = value;
-    } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
-      // ネストされたオブジェクトを再帰的に処理
-      const nested = extractNumericProperties(value, fullKey);
-      Object.assign(result, nested);
+      result[key] = value;
     }
   }
 
@@ -67,15 +64,15 @@ const DataVisualizer = ({
   currentTime,
   onTimeClick,
 }: DataVisualizerProps) => {
-  // JSONデータから利用可能な変数を抽出
+  // JSONデータから利用可能な変数を抽出（value以下のみ）
   const availableVariables = useMemo((): Variable[] => {
     if (!dataPoints || dataPoints.length === 0) return [];
 
     const allKeys = new Set<string>();
 
-    // すべてのデータポイントから数値型のキーを収集
+    // すべてのデータポイントのvalueオブジェクトから数値型のキーを収集
     dataPoints.forEach(point => {
-      const numericProps = extractNumericProperties(point);
+      const numericProps = extractNumericPropertiesFromValue(point);
       Object.keys(numericProps).forEach(key => allKeys.add(key));
     });
 
@@ -94,9 +91,29 @@ const DataVisualizer = ({
     return variables;
   }, [dataPoints]);
 
+  // JSONデータから利用可能なイベントを抽出
+  const availableEvents = useMemo((): string[] => {
+    if (!dataPoints || dataPoints.length === 0) return [];
+
+    const allEvents = new Set<string>();
+
+    dataPoints.forEach(point => {
+      if (point.event && typeof point.event === 'object' && point.event !== null) {
+        Object.keys(point.event).forEach(key => allEvents.add(key));
+      }
+    });
+
+    return Array.from(allEvents).sort();
+  }, [dataPoints]);
+
   // デフォルトで最初の2つの変数を選択
   const [selectedVariables, setSelectedVariables] = useState<string[]>(() => {
     return availableVariables.slice(0, 2).map(v => v.key);
+  });
+
+  // デフォルトで全てのイベントを選択
+  const [selectedEvents, setSelectedEvents] = useState<string[]>(() => {
+    return availableEvents;
   });
 
   // 現在地の表示・非表示
@@ -109,6 +126,13 @@ const DataVisualizer = ({
     }
   }, [availableVariables]);
 
+  // 利用可能なイベントが変わったら選択を更新
+  useMemo(() => {
+    if (availableEvents.length > 0) {
+      setSelectedEvents(availableEvents);
+    }
+  }, [availableEvents]);
+
   // チャート用データの準備
   const chartData = useMemo(() => {
     return dataPoints.map((point) => {
@@ -117,13 +141,55 @@ const DataVisualizer = ({
         formattedTime: formatTime(point.timestamp),
       };
 
-      // すべての数値プロパティを抽出してフラットに追加
-      const numericProps = extractNumericProperties(point);
+      // valueオブジェクト内の数値プロパティを抽出
+      const numericProps = extractNumericPropertiesFromValue(point);
       Object.assign(data, numericProps);
 
       return data;
     });
   }, [dataPoints]);
+
+  // チャートデータにイベントマーカーを追加
+  const chartDataWithEvents = useMemo(() => {
+    // 選択されている変数の最大値を計算
+    let maxValue = -Infinity;
+    chartData.forEach((point) => {
+      selectedVariables.forEach((varKey) => {
+        if (point[varKey] !== undefined) {
+          if (point[varKey] > maxValue) maxValue = point[varKey];
+        }
+      });
+    });
+
+    // 最大値の10%上に配置
+    const eventYPosition = maxValue * 1.1;
+
+    const data = chartData.map((point) => {
+      const eventPoint = dataPoints.find(dp => dp.timestamp === point.timestamp);
+
+      // eventがオブジェクトの場合、選択されているイベントキーが含まれているかチェック
+      let hasEvent = false;
+      let eventData = null;
+
+      if (eventPoint?.event && typeof eventPoint.event === 'object' && eventPoint.event !== null) {
+        const eventKeys = Object.keys(eventPoint.event);
+        const matchedKey = eventKeys.find(key => selectedEvents.includes(key));
+        if (matchedKey) {
+          hasEvent = true;
+          eventData = { [matchedKey]: eventPoint.event[matchedKey] };
+        }
+      }
+
+      return {
+        ...point,
+        hasEvent,
+        eventData,
+        eventY: hasEvent ? eventYPosition : null
+      };
+    });
+
+    return data;
+  }, [chartData, dataPoints, selectedVariables, selectedEvents]);
 
   const handleChartClick = (e: any) => {
     // チャート上のクリック位置からtimestampを取得
@@ -140,6 +206,16 @@ const DataVisualizer = ({
         return prev.filter((k) => k !== key);
       } else {
         return [...prev, key];
+      }
+    });
+  };
+
+  const toggleEvent = (eventName: string) => {
+    setSelectedEvents((prev) => {
+      if (prev.includes(eventName)) {
+        return prev.filter((e) => e !== eventName);
+      } else {
+        return [...prev, eventName];
       }
     });
   };
@@ -171,6 +247,26 @@ const DataVisualizer = ({
               </button>
             ))}
           </div>
+
+          {availableEvents.length > 0 && (
+            <>
+              <label className="selector-label" style={{ marginTop: '1.5rem' }}>表示するイベント:</label>
+              <div className="variable-list">
+                {availableEvents.map((eventName) => (
+                  <button
+                    key={eventName}
+                    className={`variable-button ${selectedEvents.includes(eventName) ? 'active' : ''}`}
+                    onClick={() => toggleEvent(eventName)}
+                    style={{
+                      borderColor: selectedEvents.includes(eventName) ? '#ff6b6b' : '#ccc',
+                    }}
+                  >
+                    {eventName}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="chart-area">
@@ -188,11 +284,11 @@ const DataVisualizer = ({
           </div>
 
           <div className="chart-section">
-        <ResponsiveContainer width="100%" height={400}>
-          <LineChart
-            data={chartData}
+        <ResponsiveContainer width="100%" height={450}>
+          <ComposedChart
+            data={chartDataWithEvents}
             onClick={handleChartClick}
-            margin={{ bottom: 30 }}
+            margin={{ top: 20, bottom: 30 }}
             style={{ cursor: 'pointer' }}
           >
             <CartesianGrid strokeDasharray="3 3" />
@@ -203,9 +299,65 @@ const DataVisualizer = ({
               tickFormatter={formatTime}
               label={{ value: '時間', position: 'insideBottom', offset: -20 }}
             />
-            <YAxis />
+            <YAxis
+              tickLine={false}
+              tick={(props: any) => {
+                const { x, y, payload, visibleTicksCount, index } = props;
+                // 最上部のtickは非表示
+                if (index === visibleTicksCount - 1) {
+                  return null;
+                }
+                return (
+                  <text x={x} y={y} dy={4} textAnchor="end" fill="#666" fontSize={12}>
+                    {payload.value}
+                  </text>
+                );
+              }}
+            />
             <Tooltip
               labelFormatter={(value) => formatTime(Number(value))}
+              formatter={(value: any, name: string, props: any) => {
+                // eventYは非表示
+                if (name === 'イベント') {
+                  return null;
+                }
+                return [value, name];
+              }}
+              content={(props: any) => {
+                if (!props.active || !props.payload || props.payload.length === 0) {
+                  return null;
+                }
+                const data = props.payload[0].payload;
+                return (
+                  <div style={{
+                    backgroundColor: 'white',
+                    border: '1px solid #ccc',
+                    padding: '8px 12px',
+                    borderRadius: '4px'
+                  }}>
+                    <p style={{ margin: 0, marginBottom: '4px', fontWeight: 500 }}>
+                      {formatTime(data.timestamp)}
+                    </p>
+                    {selectedVariables.map((varKey) => (
+                      <p key={varKey} style={{ margin: 0, fontSize: '14px' }}>
+                        <span style={{ color: availableVariables.find(v => v.key === varKey)?.color }}>
+                          {varKey}:
+                        </span>{' '}
+                        {data[varKey]}
+                      </p>
+                    ))}
+                    {data.hasEvent && data.eventData && (
+                      <>
+                        {Object.entries(data.eventData).map(([key, value]) => (
+                          <p key={key} style={{ margin: 0, marginTop: '4px', fontSize: '14px', color: '#ff6b6b', fontWeight: 500 }}>
+                            {key}: {String(value)}
+                          </p>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                );
+              }}
               isAnimationActive={false}
             />
             <Legend verticalAlign="top" height={36} />
@@ -236,7 +388,29 @@ const DataVisualizer = ({
                 />
               );
             })}
-          </LineChart>
+            {selectedEvents.length > 0 && (
+              <Scatter
+                name="イベント"
+                dataKey="eventY"
+                fill="#ff6b6b"
+                shape={(props: any) => {
+                  if (!props.payload.hasEvent) return null;
+                  return (
+                    <circle
+                      cx={props.cx}
+                      cy={props.cy}
+                      r={4}
+                      fill="#ff6b6b"
+                      stroke="white"
+                      strokeWidth={1.5}
+                    />
+                  );
+                }}
+                legendType="circle"
+                isAnimationActive={false}
+              />
+            )}
+          </ComposedChart>
         </ResponsiveContainer>
           </div>
         </div>

@@ -12,10 +12,8 @@ export interface Vector3 {
  */
 export interface DataPoint {
   timestamp: number;
-  score: number;
-  health: number;
-  position: Vector3;
-  customParameters?: Record<string, any>;
+  value: Record<string, any>;
+  event?: Record<string, any> | null;
 }
 
 /**
