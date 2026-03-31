@@ -18,6 +18,7 @@ game-video-analysis/
 ├── unity-asset/          # Unityデータ収集アセット
 ├── web-app/             # Webベース可視化アプリ
 └── sample-data/         # サンプルデータ
+└── sample-unity-project/ # サンプルUnityプロジェクト
 ```
 
 ## 使用方法
