@@ -316,7 +316,7 @@ const DataVisualizer = ({
             />
             <Tooltip
               labelFormatter={(value) => formatTime(Number(value))}
-              formatter={(value: any, name: string, props: any) => {
+              formatter={(value: any, name: string | undefined) => {
                 // eventYは非表示
                 if (name === 'イベント') {
                   return null;
